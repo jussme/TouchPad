@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">TouchPad</string>
+    <string name="textViewBlank">blank</string>
+    <string name="buttonText">Refresh</string>
+</resources>
