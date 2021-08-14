@@ -2,4 +2,8 @@
     <string name="app_name">TouchPad</string>
     <string name="textViewBlank">blank</string>
     <string name="buttonText">Refresh</string>
+    <string name="networkInterfacesActivityLabel">Network interfaces</string>
+    <string name="inputActivityInitButtonDesc">A button engaging the touch pad</string>
+    <string name="networkInterfacesInfoActivityButtonDesc">A button engaging the network interfaces
+        info panel</string>
 </resources>
