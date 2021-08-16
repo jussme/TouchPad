@@ -11,14 +11,18 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.TouchPad">
-        <activity android:name=".NetworkInterfacesBriefActivity"
+        <activity
+            android:name=".TouchPadNotConnectedActivity"
             android:parentActivityName=".MainActivity"
-            android:label="@string/networkInterfacesActivityLabel">
-
-        </activity>
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+        <activity
+            android:name=".NetworkInterfacesBriefActivity"
+            android:label="@string/networkInterfacesActivityLabel"
+            android:parentActivityName=".MainActivity" />
         <activity
             android:name=".TouchPadActivity"
-            android:parentActivityName=".MainActivity"></activity>
+            android:parentActivityName=".MainActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

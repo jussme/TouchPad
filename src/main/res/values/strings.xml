@@ -6,4 +6,6 @@
     <string name="inputActivityInitButtonDesc">A button engaging the touch pad</string>
     <string name="networkInterfacesInfoActivityButtonDesc">A button engaging the network interfaces
         info panel</string>
+    <string name="serverDown">The endpoint has not been set, log-in server error</string>
+    <string name="serverUp">Connect on the endpoint \":%1$d/client.jar\"</string>
 </resources>

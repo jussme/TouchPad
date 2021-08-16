@@ -7,8 +7,6 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageButton;
 
-import java.net.NetworkInterface;
-
 public class MainActivity extends AppCompatActivity {
     private ImageButton networkInterfacesInfoButton;
     private ImageButton touchPadButton;
@@ -20,7 +18,7 @@ public class MainActivity extends AppCompatActivity {
             if (v.equals(networkInterfacesInfoButton)) {
                 launchNetInterfacesActivity();
             } else {//touchPadButton
-                launchTouchPadActivity();
+                launchNotConnectedActivity();
             }
         }
     };
@@ -30,8 +28,8 @@ public class MainActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
-    private void launchTouchPadActivity() {
-        Intent intent = new Intent(this, TouchPadActivity.class);
+    private void launchNotConnectedActivity() {
+        Intent intent = new Intent(this, TouchPadNotConnectedActivity.class);
         startActivity(intent);
     }
 

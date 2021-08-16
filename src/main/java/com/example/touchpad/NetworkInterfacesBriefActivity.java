@@ -70,7 +70,7 @@ public class NetworkInterfacesBriefActivity extends AppCompatActivity {
         Enumeration<InetAddress> inetAddresses = networkInterface.getInetAddresses();
         stringBuilder.append("Bound addresses:");
         while (inetAddresses.hasMoreElements()) {
-            stringBuilder.append("\n\t" + inetAddresses.nextElement().toString());
+            stringBuilder.append("\n\t" + inetAddresses.nextElement().toString().split("/")[1]);
         }
 
         return stringBuilder.toString();
