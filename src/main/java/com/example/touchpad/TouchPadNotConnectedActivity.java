@@ -26,7 +26,7 @@ public class TouchPadNotConnectedActivity extends AppCompatActivity {
 
   public void launchTouchpadding(InetSocketAddress clientUDPInetSocketAddress) {
     Intent intent = new Intent(this, TouchPadActivity.class);
-    intent.putExtra(TouchPadActivity.CLIENT_INET_SOCKET_ADDRESS, clientUDPInetSocketAddress);
+    intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, clientUDPInetSocketAddress);
     startActivity(intent);
   }
 }

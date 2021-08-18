@@ -14,7 +14,7 @@
         <activity
             android:name=".TouchPadNotConnectedActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+            android:theme="@style/Theme.AppCompat.NoActionBar.Fullscreen.Dark" />
         <activity
             android:name=".NetworkInterfacesBriefActivity"
             android:label="@string/networkInterfacesActivityLabel"
@@ -22,7 +22,7 @@
         <activity
             android:name=".TouchPadActivity"
             android:parentActivityName=".MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar.FullScreen" />
+            android:theme="@style/Theme.AppCompat.NoActionBar.Fullscreen.Dark" />
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
