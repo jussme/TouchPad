@@ -1,13 +1,13 @@
-package com.example.touchpad;
+package com.example.touchpad.communication;
 
 import android.content.res.AssetFileDescriptor;
 
+import com.example.touchpad.TouchPadNotConnectedActivity;
+
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
-import java.io.EOFException;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;

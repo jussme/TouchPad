@@ -6,6 +6,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.TextView;
 
+import com.example.touchpad.communication.LogInServer;
+
 import java.net.InetSocketAddress;
 
 public class TouchPadNotConnectedActivity extends AppCompatActivity {
