@@ -5,7 +5,12 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageButton;
+
+import com.example.touchpad.communication.LogInServer;
+
+import java.net.InetSocketAddress;
 
 public class MainActivity extends AppCompatActivity {
     private ImageButton networkInterfacesInfoButton;
@@ -17,8 +22,16 @@ public class MainActivity extends AppCompatActivity {
             //v.equals(networkInterfacesInfoButton)? launchNetInterfacesActivity() : launchTouchPadActivity();
             if (v.equals(networkInterfacesInfoButton)) {
                 launchNetInterfacesActivity();
-            } else {//touchPadButton
+            }
+            if (v.equals(touchPadButton)) {//touchPadButton
                 launchNotConnectedActivity();
+            } else {
+                Intent intent = new Intent(MainActivity.this, TouchPadActivity.class);
+                new Thread(() -> {
+                    InetSocketAddress address = new InetSocketAddress("localhost", 50000);
+                    intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, address);
+                    startActivity(intent);
+                }).start();
             }
         }
     };
@@ -40,7 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         networkInterfacesInfoButton = (ImageButton) findViewById(R.id.networkInterfacesInfo);
         touchPadButton = (ImageButton) findViewById(R.id.touchPad);
-
+        Button testPanelButton = (Button) findViewById(R.id.button);
+        testPanelButton.setOnClickListener(modeButtonsOnClickListener);
         networkInterfacesInfoButton.setOnClickListener(modeButtonsOnClickListener);
         touchPadButton.setOnClickListener(modeButtonsOnClickListener);
     }
