@@ -18,33 +18,39 @@ public class MainActivity extends AppCompatActivity {
 
     private View.OnClickListener modeButtonsOnClickListener = new View.OnClickListener() {
         @Override
-        public void onClick(View v) {//ternary operator doesn't work?
-            //v.equals(networkInterfacesInfoButton)? launchNetInterfacesActivity() : launchTouchPadActivity();
+        public void onClick(View v) {
             if (v.equals(networkInterfacesInfoButton)) {
                 launchNetInterfacesActivity();
+            } else{
+                if (v.equals(touchPadButton)) {//touchPadButton
+                    launchNotConnectedActivity();
+                } else {
+                    launchTouchpadActivity();
+                }
             }
-            if (v.equals(touchPadButton)) {//touchPadButton
-                launchNotConnectedActivity();
-            } else {
-                Intent intent = new Intent(MainActivity.this, TouchPadActivity.class);
-                new Thread(() -> {
-                    InetSocketAddress address = new InetSocketAddress("localhost", 50000);
-                    intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, address);
-                    startActivity(intent);
-                }).start();
-            }
+        }
+
+        private void launchTouchpadActivity() {
+            Intent intent = new Intent(MainActivity.this, TouchPadActivity.class);
+            new Thread(() -> {
+                InetSocketAddress address = new InetSocketAddress("localhost", 50000);
+                intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, address);
+                startActivity(intent);
+            }).start();
+        }
+
+        private void launchNetInterfacesActivity() {
+            Intent intent = new Intent(MainActivity.this, NetworkInterfacesBriefActivity.class);
+            startActivity(intent);
+        }
+
+        private void launchNotConnectedActivity() {
+            Intent intent = new Intent(MainActivity.this, TouchPadNotConnectedActivity.class);
+            startActivity(intent);
         }
     };
 
-    private void launchNetInterfacesActivity() {
-        Intent intent = new Intent(this, NetworkInterfacesBriefActivity.class);
-        startActivity(intent);
-    }
 
-    private void launchNotConnectedActivity() {
-        Intent intent = new Intent(this, TouchPadNotConnectedActivity.class);
-        startActivity(intent);
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
