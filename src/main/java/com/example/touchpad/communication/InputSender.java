@@ -3,10 +3,15 @@ package com.example.touchpad.communication;
 import android.view.MotionEvent;
 import android.view.View;
 
+import androidx.constraintlayout.widget.ConstraintSet;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetSocketAddress;
+import java.util.Queue;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.example.touchpad.communication.InputType.MOVEMENT;
 
@@ -73,8 +78,9 @@ public class InputSender {
               buff.inputType = MOVEMENT;
               buff.x = (int) motionEvent.getX() - lastMainPointerDown_x;
               buff.y = (int) motionEvent.getY() - lastMainPointerDown_y;
-              lastMainPointerDown_x = buff.x;
-              lastMainPointerDown_y = buff.y;
+              lastMainPointerDown_x = (int) motionEvent.getX();
+              lastMainPointerDown_y = (int) motionEvent.getY();
+              System.err.println(buff.x + ":" + buff.y);
             }
 
             return parsedInput;

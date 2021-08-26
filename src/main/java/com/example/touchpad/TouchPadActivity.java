@@ -11,12 +11,24 @@ import com.example.touchpad.communication.InputSender;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class TouchPadActivity extends AppCompatActivity {
     private final View.OnTouchListener onTouchListener = new View.OnTouchListener() {
+        private final ExecutorService executorService = Executors.newSingleThreadExecutor();
+
         @Override
         public boolean onTouch(View v, MotionEvent event) {
-            return inputSender.sendInput(v, event);
+            try {
+                return executorService.submit(() -> inputSender.sendInput(v, event)).get();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            return false;
         }
     };
 

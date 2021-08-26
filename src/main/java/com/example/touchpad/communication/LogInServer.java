@@ -49,13 +49,15 @@ public class LogInServer extends Thread{
         //client jar connection
         connection = serverSocket.accept();
         serverSocket.close();
+        //to drain
+        isClientConnection(connection);
       }
 
+      //universal client communication
       if (readClientsVersion(connection) != VERSION) {
         //TODO
       }
 
-      //universal client communication
       InetSocketAddress remoteUDPInetSocketAddress = readClientsUDPInetSocketAddress(connection);
       connection.close();
 
