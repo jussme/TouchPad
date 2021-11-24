@@ -10,6 +10,7 @@ import android.widget.ImageButton;
 
 import com.example.touchpad.communication.LogInServer;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class MainActivity extends AppCompatActivity {

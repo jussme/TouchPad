@@ -35,7 +35,6 @@ public class TouchPadNotConnectedActivity extends AppCompatActivity {
   }
 
   public void setServerAddressPrompt(InetSocketAddress serverISA){
-    System.err.println("setServerAddressPrompt");
     TextView textView = findViewById(R.id.notConnectedMessage);
     String message = getString(R.string.serverUp, serverISA.getAddress().getHostAddress(),
             serverISA.getPort());
