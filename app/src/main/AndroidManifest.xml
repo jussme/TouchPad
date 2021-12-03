@@ -18,7 +18,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.TouchPad">
         <activity
-            android:name=".TouchPadNotConnectedActivity"
+            android:name=".ConnectServerActivity"
             android:parentActivityName=".MainActivity"
             android:theme="@style/Theme.AppCompat.NoActionBar.Fullscreen.Dark" />
         <activity

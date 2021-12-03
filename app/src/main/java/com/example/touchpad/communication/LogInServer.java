@@ -1,33 +1,25 @@
 package com.example.touchpad.communication;
 
 import android.content.res.AssetFileDescriptor;
-import android.net.ConnectivityManager;
-import android.os.Build;
 
-import androidx.annotation.RequiresApi;
-
-import com.example.touchpad.TouchPadNotConnectedActivity;
+import com.example.touchpad.ConnectServerActivity;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
-import java.util.Enumeration;
 
 public class LogInServer{
   private static final int VERSION = 1;
   public static final String CLIENT_INET_SOCKET_ADDRESS = "com.example.touchpad.SOCK_ADDRESS";
   private ServerSocket serverSocket;
-  private TouchPadNotConnectedActivity context;
+  private ConnectServerActivity context;
   private Thread serverThread;
   private InetAddress serverAddress;
 
@@ -35,7 +27,7 @@ public class LogInServer{
     public void refreshServer(InetAddress inetAddress);
   }
 
-  public LogInServer(TouchPadNotConnectedActivity context) {
+  public LogInServer(ConnectServerActivity context) {
     this.context = context;
     new NetworkInterfaceMaster(inetAddress -> {
 
@@ -57,22 +49,7 @@ public class LogInServer{
 
   private void serviceConnection(Socket connection) throws IOException{
     if (!isClientConnection(connection)) {
-      sendBrowserJarHttp(connection);
-      connection.shutdownOutput();
-      connection.close();
-
-      //to RST connections with pesky browsers sending keep-alive PDUs to the serverSocket(?).
-      //A four-way FIN handshake with Chrome prevents keep-alives but that requires
-      //a sleep between shutdownOutput() and close() it seems; otherwise there's no time to
-      //handshake before close()'s RST is sent.
-      serverSocket.close();
-      serverSocket = new ServerSocket(getServerPort());
-
-      //client jar connection
-      connection = serverSocket.accept();
-      serverSocket.close();
-      //to drain
-      isClientConnection(connection);
+      serviceBrowserConnection(connection);
     }
 
     //universal client communication from now on
@@ -86,14 +63,32 @@ public class LogInServer{
     context.launchTouchpadding(remoteUDPInetSocketAddress);
   }
 
-  private void sendBrowserJarHttp(Socket socket) throws IOException{
-    String httpHeader = "HTTP/1.1 200\nContent-Type: application/octet-stream\nContent-Length: ";
-    String charsetName = "UTF-8";
+  private void serviceBrowserConnection(Socket connection) throws IOException{
+    sendJarToBrowserOverHttp(connection);
+    connection.shutdownOutput();
+    connection.close();
 
+    //to RST connections with pesky browsers sending keep-alive PDUs to the serverSocket(?).
+    //A four-way FIN handshake with Chrome prevents keep-alives but that requires
+    //a sleep between shutdownOutput() and close() it seems; otherwise there's no time to
+    //handshake before close()'s RST is sent.
+    serverSocket.close();
+    serverSocket = new ServerSocket(getServerPort());
+
+    //client jar connection
+    connection = serverSocket.accept();
+    serverSocket.close();
+    //to drain
+    isClientConnection(connection);
+  }
+
+  private void sendJarToBrowserOverHttp(Socket socket) throws IOException{
     BufferedOutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
     AssetFileDescriptor jarFileDescriptor = context.getAssets().openFd("TouchpadClient.jar");
 
+    String httpHeader = "HTTP/1.1 200\nContent-Type: application/octet-stream\nContent-Length: ";
     httpHeader += jarFileDescriptor.getLength() + "\n\n";
+    String charsetName = "UTF-8";
     outputStream.write(httpHeader.getBytes(charsetName));
 
     FileInputStream jarFileStream = jarFileDescriptor.createInputStream();

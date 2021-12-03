@@ -9,9 +9,11 @@ import android.widget.TextView;
 import com.example.touchpad.communication.LogInServer;
 
 import java.net.InetSocketAddress;
+import java.util.Set;
+import java.util.TreeSet;
 
-public class TouchPadNotConnectedActivity extends AppCompatActivity {
-  private LogInServer logInServer;
+public class ConnectServerActivity extends AppCompatActivity {
+  private Set<LogInServer> logInServers = new TreeSet<>();
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -24,14 +26,17 @@ public class TouchPadNotConnectedActivity extends AppCompatActivity {
   protected void onStart() {
     super.onStart();
 
-    logInServer = new LogInServer(this);
-    logInServer.startServer();
+    LogInServer server = new LogInServer(this);
+    logInServers.add(server);
+    server.startServer();
   }
 
   @Override
   protected void onStop() {
     super.onStop();
-    logInServer.shutdownServer();
+    for(LogInServer server : logInServers){
+      server.shutdownServer();
+    }
   }
 
   public void setServerAddressPrompt(InetSocketAddress serverISA){

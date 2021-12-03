@@ -8,4 +8,5 @@
         info panel</string>
     <string name="serverDown">The endpoint has not been set, log-in server error</string>
     <string name="serverUp">Connect on the endpoint \"%1s:%2$d/client.jar\"</string>
+    <string name="serverUpPrompt">Available interfaces:%1s</string>
 </resources>

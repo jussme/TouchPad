@@ -10,6 +10,8 @@ import android.net.NetworkRequest;
 
 import java.io.IOException;
 import java.net.DatagramSocket;
+import java.net.Inet4Address;
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.ServerSocket;
@@ -26,12 +28,13 @@ public class NetworkInterfaceMaster {
 
     NetworkInterfaceMaster(LogInServer.Refresher refresher, Context context){
         callback = new ConnectivityManager.NetworkCallback() {
+            private Network currentBestNetwork;
             @Override
             public void onAvailable(Network network){
                 super.onAvailable(network);
                 boolean found = false;
                 for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-                    if(linkAddress.getAddress().getAddress().length == 4){
+                    if(linkAddress.getAddress().getClass() == Inet4Address.class){
                         found = true;
                         refresher.refreshServer(linkAddress.getAddress());
                         break;
@@ -39,19 +42,13 @@ public class NetworkInterfaceMaster {
                 }
                 if(!found){//TODO DRY
                     for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-                        if(linkAddress.getAddress().getAddress().length != 4 &&
+                        if(linkAddress.getAddress().getClass() == Inet6Address.class &&
                                 linkAddress.getAddress().isLinkLocalAddress()){
                             refresher.refreshServer(linkAddress.getAddress());
                             break;
                         }
                     }
                 }
-                /*InetAddress[] networkAddresses = manager
-                            .getLinkProperties(network)
-                            .getLinkAddresses()
-                            .stream()
-                            .map(LinkAddress::getAddress)
-                            .toArray();*/
             }
 
             @Override
@@ -83,49 +80,17 @@ public class NetworkInterfaceMaster {
 
     public InetAddress findLocalWifiAddress(Context context) {
         manager = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
+
+        //ethernet - usbc card or virtual eth over usb  should have higher priority
         NetworkRequest.Builder requestBuilder = new NetworkRequest.Builder();
-        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-        requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET);
-        //TODO ethernet? no either
+        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
         manager.requestNetwork(requestBuilder.build(), callback);
 
-        return null;
-    }
+        //wifi, dont know if new builder is needed
+        requestBuilder = new NetworkRequest.Builder();
+        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        manager.requestNetwork(requestBuilder.build(), callback);
 
-    public static InetAddress getPhysicalIPv4Address() throws SocketException, UnknownHostException {
-        DatagramSocket socket = new DatagramSocket();
-        socket.connect(InetAddress.getByName("8.8.8.8"), 12);
-        InetAddress usedAddress = socket.getLocalAddress();
-
-        Enumeration<NetworkInterface> netInterfaces = NetworkInterface.getNetworkInterfaces();
-        while(netInterfaces.hasMoreElements()){
-            NetworkInterface netInterface = netInterfaces.nextElement();
-            if(interfaceContainsAddress(netInterface, usedAddress)){
-                return findIPv4Address(netInterface);
-            }
-        }
-        return null;
-    }
-
-    public static boolean interfaceContainsAddress(NetworkInterface netInterface, InetAddress address) {
-        Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
-        while(addresses.hasMoreElements()){
-            if(addresses.nextElement().getHostAddress().equals(address.getHostAddress())){
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static InetAddress findIPv4Address(NetworkInterface netInterface){
-        Enumeration<InetAddress> addresses = netInterface.getInetAddresses();
-        while(addresses.hasMoreElements()) {
-            InetAddress address = addresses.nextElement();
-            byte[] addressBytes = address.getAddress();
-            if (addressBytes.length == 4 && addressBytes[0] != 127) {
-                return address;
-            }
-        }
         return null;
     }
 }

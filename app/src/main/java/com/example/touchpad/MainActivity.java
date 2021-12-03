@@ -10,7 +10,6 @@ import android.widget.ImageButton;
 
 import com.example.touchpad.communication.LogInServer;
 
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 
 public class MainActivity extends AppCompatActivity {
@@ -25,19 +24,8 @@ public class MainActivity extends AppCompatActivity {
             } else{
                 if (v.equals(touchPadButton)) {//touchPadButton
                     launchNotConnectedActivity();
-                } else {
-                    launchTouchpadActivity();
                 }
             }
-        }
-
-        private void launchTouchpadActivity() {
-            Intent intent = new Intent(MainActivity.this, TouchPadActivity.class);
-            new Thread(() -> {
-                InetSocketAddress address = new InetSocketAddress("localhost", 50000);
-                intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, address);
-                startActivity(intent);
-            }).start();
         }
 
         private void launchNetInterfacesActivity() {
@@ -46,22 +34,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void launchNotConnectedActivity() {
-            Intent intent = new Intent(MainActivity.this, TouchPadNotConnectedActivity.class);
+            Intent intent = new Intent(MainActivity.this, ConnectServerActivity.class);
             startActivity(intent);
         }
     };
-
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        //interfaces brief button
         networkInterfacesInfoButton = (ImageButton) findViewById(R.id.networkInterfacesInfo);
         touchPadButton = (ImageButton) findViewById(R.id.touchPad);
-        Button testPanelButton = (Button) findViewById(R.id.button);
-        testPanelButton.setOnClickListener(modeButtonsOnClickListener);
+
+        //server button
         networkInterfacesInfoButton.setOnClickListener(modeButtonsOnClickListener);
         touchPadButton.setOnClickListener(modeButtonsOnClickListener);
     }
