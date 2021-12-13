@@ -29,26 +29,11 @@ public class NetworkInterfaceMaster {
     NetworkInterfaceMaster(LogInServer.Refresher refresher, Context context){
         callback = new ConnectivityManager.NetworkCallback() {
             private Network currentBestNetwork;
+
             @Override
             public void onAvailable(Network network){
                 super.onAvailable(network);
-                boolean found = false;
-                for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-                    if(linkAddress.getAddress().getClass() == Inet4Address.class){
-                        found = true;
-                        refresher.refreshServer(linkAddress.getAddress());
-                        break;
-                    }
-                }
-                if(!found){//TODO DRY
-                    for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-                        if(linkAddress.getAddress().getClass() == Inet6Address.class &&
-                                linkAddress.getAddress().isLinkLocalAddress()){
-                            refresher.refreshServer(linkAddress.getAddress());
-                            break;
-                        }
-                    }
-                }
+                refresher.refreshServer(findSuitableAddress(network));
             }
 
             @Override
@@ -78,17 +63,48 @@ public class NetworkInterfaceMaster {
         findLocalWifiAddress(context);
     }
 
-    public InetAddress findLocalWifiAddress(Context context) {
+    /**
+     * Finds an IP address in a Network object, preferring ipv4 over ipv6
+     * and link-local over global ipv6
+     *
+     * @return found address
+     */
+    private InetAddress findSuitableAddress(Network network) {//TODO DRY
+        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
+            if(linkAddress.getAddress().getClass() == Inet4Address.class){
+                System.err.println("found address4: " + linkAddress.getAddress().getHostAddress());
+                return linkAddress.getAddress();
+            }
+        }
+        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
+            if(linkAddress.getAddress().getClass() == Inet6Address.class &&
+                    linkAddress.getAddress().isLinkLocalAddress()){
+                System.err.println("found address6linklocal: " + linkAddress.getAddress().getHostAddress());
+                return linkAddress.getAddress();
+            }
+        }
+        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
+            if(linkAddress.getAddress().getClass() == Inet6Address.class){
+                System.err.println("found address6: " + linkAddress.getAddress().getHostAddress());
+                return linkAddress.getAddress();
+            }
+        }
+        return null;
+    }
+
+    private InetAddress findLocalWifiAddress(Context context) {
         manager = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
 
-        //ethernet - usbc card or virtual eth over usb  should have higher priority
+        //ethernet - usbc card or virtual eth over usb should have higher priority
         NetworkRequest.Builder requestBuilder = new NetworkRequest.Builder();
-        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
+        /*requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
+        requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
         manager.requestNetwork(requestBuilder.build(), callback);
-
-        //wifi, dont know if new builder is needed
+        */
+        //wifi, hostspot? dont know if new builder is needed
         requestBuilder = new NetworkRequest.Builder();
         requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
+        requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
         manager.requestNetwork(requestBuilder.build(), callback);
 
         return null;

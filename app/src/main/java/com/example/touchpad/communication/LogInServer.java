@@ -1,45 +1,54 @@
 package com.example.touchpad.communication;
 
+import android.content.Context;
 import android.content.res.AssetFileDescriptor;
 
-import com.example.touchpad.ConnectServerActivity;
 
 import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
-import java.net.UnknownHostException;
 
 public class LogInServer{
   private static final int VERSION = 1;
   public static final String CLIENT_INET_SOCKET_ADDRESS = "com.example.touchpad.SOCK_ADDRESS";
-  private ServerSocket serverSocket;
-  private ConnectServerActivity context;
+
+  private Context context;
+  private Facilitator facilitator;
+
   private Thread serverThread;
   private InetAddress serverAddress;
+  private ServerSocket serverSocket;
 
   public interface Refresher{
     public void refreshServer(InetAddress inetAddress);
   }
 
-  public LogInServer(ConnectServerActivity context) {
-    this.context = context;
-    new NetworkInterfaceMaster(inetAddress -> {
+  public interface Facilitator {
+    public void setServerAddressPrompt(InetSocketAddress serverISA);
+    public void launchTouchpadding(InetSocketAddress clientUDPInetSocketAddress);
+  }
 
+  public LogInServer(Context context, Facilitator facilitator) {
+    this.context = context;
+    this.facilitator = facilitator;
+    new NetworkInterfaceMaster(inetAddress -> {
+      restartServer(inetAddress);
+      facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
     }, context);
   }
 
   private void runServer() {
-    try {Thread.sleep(5000);
+    try {
       serverSocket = new ServerSocket();
       serverSocket.bind(new InetSocketAddress(serverAddress, getServerPort()));
+      facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
       Socket connection = serverSocket.accept();
-      context.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
       serviceConnection(connection);
     } catch (Exception e) {
       e.printStackTrace();
@@ -60,7 +69,7 @@ public class LogInServer{
     InetSocketAddress remoteUDPInetSocketAddress = readClientsUDPInetSocketAddress(connection);
     connection.close();
 
-    context.launchTouchpadding(remoteUDPInetSocketAddress);
+    facilitator.launchTouchpadding(remoteUDPInetSocketAddress);
   }
 
   private void serviceBrowserConnection(Socket connection) throws IOException{
@@ -103,10 +112,7 @@ public class LogInServer{
   private boolean isClientConnection(Socket connection) throws IOException{
     DataInputStream clientDataInputStream = new DataInputStream(connection.getInputStream());
     short checkValue = clientDataInputStream.readShort();
-    if (checkValue == Short.MAX_VALUE) {
-      return true;
-    }
-    return false;
+    return checkValue == Short.MAX_VALUE;
   }
 
   private int readClientsVersion(Socket clientConnection) throws IOException{
@@ -123,12 +129,8 @@ public class LogInServer{
     return new InetSocketAddress(socket.getInetAddress(), clientUDPRemotePort);
   }
 
-  private InetAddress pickServerAddress() throws SocketException, UnknownHostException{
-    //TODO ipv6 if no ipv4
-    return NetworkInterfaceMaster.getPhysicalIPv4Address();
-  }
   private int getServerPort(){//TODO
-    return 50000;
+    return 0;
   }
 
   public void startServer(){
@@ -136,8 +138,9 @@ public class LogInServer{
     serverThread.start();
   }
 
-  public void restartServer(){
+  public void restartServer(InetAddress address){
     shutdownServer();
+    serverAddress = address;
     startServer();
   }
 
