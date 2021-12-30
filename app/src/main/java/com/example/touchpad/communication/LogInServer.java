@@ -25,6 +25,9 @@ public class LogInServer{
   private InetAddress serverAddress;
   private ServerSocket serverSocket;
 
+  /**
+   * Refreshes the server after
+   */
   public interface Refresher{
     public void refreshServer(InetAddress inetAddress);
   }
@@ -39,7 +42,6 @@ public class LogInServer{
     this.facilitator = facilitator;
     new NetworkInterfaceMaster(inetAddress -> {
       restartServer(inetAddress);
-      facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
     }, context);
   }
 
@@ -47,7 +49,6 @@ public class LogInServer{
     try {
       serverSocket = new ServerSocket();
       serverSocket.bind(new InetSocketAddress(serverAddress, getServerPort()));
-      facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
       Socket connection = serverSocket.accept();
       serviceConnection(connection);
     } catch (Exception e) {
@@ -133,9 +134,14 @@ public class LogInServer{
     return 0;
   }
 
+  private void communicateNewIP() {
+    facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
+  }
+
   public void startServer(){
     serverThread = new Thread(this::runServer);
     serverThread.start();
+    communicateNewIP();
   }
 
   public void restartServer(InetAddress address){
