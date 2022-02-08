@@ -27,7 +27,6 @@ public class ConnectServerActivity extends AppCompatActivity implements LogInSer
     super.onStart();
 
     logInServer = new LogInServer(this, this);
-    logInServer.startServer();
   }
 
   @Override
@@ -37,7 +36,7 @@ public class ConnectServerActivity extends AppCompatActivity implements LogInSer
   }
 
   @Override
-  public void setServerAddressPrompt(InetSocketAddress serverISA){
+  public void communicateServerISA(InetSocketAddress serverISA){
     String message = getString(R.string.serverUp, serverISA.getAddress().getHostAddress(),
             serverISA.getPort());
     this.runOnUiThread(() -> {
@@ -46,7 +45,7 @@ public class ConnectServerActivity extends AppCompatActivity implements LogInSer
   }
 
   @Override
-  public void launchTouchpadding(InetSocketAddress clientUDPInetSocketAddress) {
+  public void communicateClientUDP_ISA(InetSocketAddress clientUDPInetSocketAddress) {
     Intent intent = new Intent(this, TouchPadActivity.class);
     intent.putExtra(LogInServer.CLIENT_INET_SOCKET_ADDRESS, clientUDPInetSocketAddress);
     startActivity(intent);

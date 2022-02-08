@@ -8,7 +8,6 @@ import java.io.BufferedOutputStream;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InterruptedIOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -25,18 +24,16 @@ public class LogInServer{
   private InetAddress serverAddress;
   private ServerSocket serverSocket;
 
-  /**
-   * Refreshes the server after
-   */
-  public interface Refresher{
-    public void refreshServer(InetAddress inetAddress);
-  }
-
   public interface Facilitator {
-    public void setServerAddressPrompt(InetSocketAddress serverISA);
-    public void launchTouchpadding(InetSocketAddress clientUDPInetSocketAddress);
+    public void communicateServerISA(InetSocketAddress serverISA);
+    public void communicateClientUDP_ISA(InetSocketAddress clientUDPInetSocketAddress);
   }
 
+  /**
+   * The server is started when created
+   * @param context
+   * @param facilitator an interface between the server and the one using it
+   */
   public LogInServer(Context context, Facilitator facilitator) {
     this.context = context;
     this.facilitator = facilitator;
@@ -70,7 +67,7 @@ public class LogInServer{
     InetSocketAddress remoteUDPInetSocketAddress = readClientsUDPInetSocketAddress(connection);
     connection.close();
 
-    facilitator.launchTouchpadding(remoteUDPInetSocketAddress);
+    facilitator.communicateClientUDP_ISA(remoteUDPInetSocketAddress);
   }
 
   private void serviceBrowserConnection(Socket connection) throws IOException{
@@ -134,14 +131,24 @@ public class LogInServer{
     return 0;
   }
 
-  private void communicateNewIP() {
-    facilitator.setServerAddressPrompt((InetSocketAddress) serverSocket.getLocalSocketAddress());
+  private void communicateNewServerSocketAddress() {
+    while(serverSocket == null || serverSocket.getLocalSocketAddress() == null){
+
+    }
+    try{
+      System.err.println("\n\nhalo adres: " + serverSocket.getLocalSocketAddress() + "\n\n");
+      Thread.sleep(2000);
+      System.err.println("\n\nhalo adres: " + serverSocket.getLocalSocketAddress() + "\n\n");
+    }catch(InterruptedException e){
+      System.err.println(e);
+    }
+    facilitator.communicateServerISA((InetSocketAddress) serverSocket.getLocalSocketAddress());
   }
 
   public void startServer(){
     serverThread = new Thread(this::runServer);
     serverThread.start();
-    communicateNewIP();
+    communicateNewServerSocketAddress();
   }
 
   public void restartServer(InetAddress address){
@@ -151,6 +158,10 @@ public class LogInServer{
   }
 
   public void shutdownServer() {
-    serverThread.interrupt();
+    if (serverThread != null) {
+      serverThread.interrupt();
+    } else {
+      System.err.println("null serverThread");
+    }
   }
 }
