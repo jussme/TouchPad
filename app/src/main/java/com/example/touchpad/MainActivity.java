@@ -5,12 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageButton;
-
-import com.example.touchpad.communication.LogInServer;
-
-import java.net.InetSocketAddress;
 
 public class MainActivity extends AppCompatActivity {
     private ImageButton networkInterfacesInfoButton;
@@ -34,7 +29,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         private void launchNotConnectedActivity() {
-            Intent intent = new Intent(MainActivity.this, ConnectServerActivity.class);
+            Intent intent = new Intent(MainActivity.this, ServerActivity.class);
             startActivity(intent);
         }
     };

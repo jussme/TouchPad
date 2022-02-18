@@ -43,6 +43,8 @@ public class NetworkInterfaceMaster {
                 System.err.println("found address4: " + linkAddress.getAddress().getHostAddress());
                 return linkAddress.getAddress();
             }
+        }
+        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()) {
             if(linkAddress.getAddress().getClass() == Inet6Address.class &&
                     linkAddress.getAddress().isLinkLocalAddress()){
                 System.err.println("found address6linklocal: " + linkAddress.getAddress().getHostAddress());
@@ -72,13 +74,16 @@ public class NetworkInterfaceMaster {
         private InetAddressConsumer addressConsumer;
 
         public BaseCallback(InetAddressConsumer addressConsumer){
-            this.addressConsumer = addressConsumer;
+
         }
 
         @Override
         public void onAvailable(Network network){
             super.onAvailable(network);
-            addressConsumer.consumeAddress(findSuitableAddress(network));
+            InetAddress ia;
+            if ((ia = findSuitableAddress(network)) != null){
+                addressConsumer.consumeAddress(ia);
+            }
         }
 
         @Override
@@ -110,9 +115,9 @@ public class NetworkInterfaceMaster {
 
         //ethernet - usbc card or virtual eth over usb should have higher priority
         NetworkRequest.Builder requestBuilder = new NetworkRequest.Builder();
-        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
-        requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
-        manager.requestNetwork(requestBuilder.build(), new BaseCallback(addressConsumer));
+        //requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
+        //requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
+        //manager.requestNetwork(requestBuilder.build(), new BaseCallback(addressConsumer));
 
         //wifi, hostspot? dont know if new builder is needed
         requestBuilder = new NetworkRequest.Builder();

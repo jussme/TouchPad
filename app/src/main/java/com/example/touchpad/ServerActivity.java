@@ -10,7 +10,7 @@ import com.example.touchpad.communication.LogInServer;
 
 import java.net.InetSocketAddress;
 
-public class ConnectServerActivity extends AppCompatActivity implements LogInServer.Facilitator{
+public class ServerActivity extends AppCompatActivity implements LogInServer.Facilitator{
   private LogInServer logInServer;
   private TextView textViewPrompt;
 
@@ -32,7 +32,16 @@ public class ConnectServerActivity extends AppCompatActivity implements LogInSer
   @Override
   protected void onStop() {
     super.onStop();
+    System.err.println("stop!");
     logInServer.shutdownServer();
+  }
+
+  @Override
+  public void noAvailableServerISA(){
+    String message = getString(R.string.serverNoIP);
+    this.runOnUiThread(() -> {
+      textViewPrompt.setText(message);
+    });
   }
 
   @Override

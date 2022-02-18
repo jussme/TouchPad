@@ -6,7 +6,8 @@
     <string name="inputActivityInitButtonDesc">A button engaging the touch pad</string>
     <string name="networkInterfacesInfoActivityButtonDesc">A button engaging the network interfaces
         info panel</string>
-    <string name="serverDown">The endpoint has not been set, log-in server error</string>
+    <string name="serverDown">The endpoint has not been set</string>
+    <string name="serverNoIP">No suitable network found</string>
     <string name="serverUp">Connect on the endpoint \"%1s:%2$d/client.jar\"</string>
     <string name="serverUpPrompt">Available interfaces:%1s</string>
 </resources>
