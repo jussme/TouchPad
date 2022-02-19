@@ -7,8 +7,12 @@ import android.os.Bundle;
 import android.widget.TextView;
 
 import com.example.touchpad.communication.LogInServer;
+import com.example.touchpad.communication.Transport;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
+import java.util.Map;
 
 public class ServerActivity extends AppCompatActivity implements LogInServer.Facilitator{
   private LogInServer logInServer;
@@ -37,22 +41,19 @@ public class ServerActivity extends AppCompatActivity implements LogInServer.Fac
   }
 
   @Override
-  public void noAvailableServerISA(){
-    String message = getString(R.string.serverNoIP);
-    this.runOnUiThread(() -> {
-      textViewPrompt.setText(message);
-    });
-  }
+  public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses) {
+    for(Map.Entry<Transport, List<InetAddress>> entry : addresses.entrySet()) {
+      System.err.println(entry + "\n");
+    }
 
-  @Override
-  public void communicateServerISA(InetSocketAddress serverISA){
-    String message = getString(R.string.serverUp, serverISA.getAddress().getHostAddress(),
-            serverISA.getPort());
-    this.runOnUiThread(() -> {
-      textViewPrompt.setText(message);
-    });
+    public void setServerAddressPrompt(InetSocketAddress serverISA){
+      TextView textView = findViewById(R.id.notConnectedMessage);
+      String message = getString(R.string.serverUp, serverISA.getAddress().getHostAddress(),
+              serverISA.getPort());
+      textView.setText(message);
+    }
+    */
   }
-
   @Override
   public void communicateClientUDP_ISA(InetSocketAddress clientUDPInetSocketAddress) {
     Intent intent = new Intent(this, TouchPadActivity.class);

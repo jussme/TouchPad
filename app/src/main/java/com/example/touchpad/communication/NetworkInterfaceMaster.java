@@ -8,92 +8,114 @@ import android.net.Network;
 import android.net.NetworkCapabilities;
 import android.net.NetworkRequest;
 
-import java.io.IOException;
-import java.net.DatagramSocket;
 import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.ServerSocket;
-import java.net.SocketException;
-import java.net.SocketImplFactory;
-import java.net.UnknownHostException;
-import java.util.Enumeration;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.stream.Stream;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.function.Predicate;
 
 public class NetworkInterfaceMaster {
-    private ConnectivityManager manager;
-
-    NetworkInterfaceMaster(InetAddressConsumer addressConsumer, Context context){
-        findLocalWifiAddress(addressConsumer, context);
+    NetworkInterfaceMaster(TransportMapInetAddressConsumer addressConsumer, Context context){
+        ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        for(Transport t : Transport.values()){
+            addresses.put(t, new ArrayList<InetAddress>());
+        }
+        registerCallbacksByTransportType(addressConsumer, manager);
     }
 
-    /**
-     * Finds an IP address in a Network object, preferring ipv4 over ipv6
-     * and link-local over global ipv6
-     *
-     * @return found address
-     */
-    private InetAddress findSuitableAddress(Network network) {//TODO DRY
-        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-            if(linkAddress.getAddress().getClass() == Inet4Address.class){
+    //an interface and functions finding representative addresses for interfaces/networks
+    private InetAddress findIPv4Address(ConnectivityManager manager, Network network) {
+        return findAddress(manager, network,
+                (inetAddress) -> inetAddress.getClass() == Inet4Address.class);
+    }
+
+    private InetAddress findLinkLocalIPv6Address(ConnectivityManager manager, Network network) {
+        return findAddress(manager,
+                network,
+                (inetAddress) -> inetAddress.getClass() == Inet6Address.class &&
+                        inetAddress.isLinkLocalAddress());
+    }
+
+    private InetAddress findAddress(ConnectivityManager manager, Network network,
+                                    PrimitivePredicate<InetAddress> predicate){
+        LinkProperties linkProperties = manager.getLinkProperties(network);
+        if(linkProperties == null){
+            return null;
+        }
+        for(LinkAddress linkAddress : linkProperties.getLinkAddresses()){
+            if(predicate.test(linkAddress.getAddress())){
                 System.err.println("found address4: " + linkAddress.getAddress().getHostAddress());
                 return linkAddress.getAddress();
             }
         }
-        for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()) {
-            if(linkAddress.getAddress().getClass() == Inet6Address.class &&
-                    linkAddress.getAddress().isLinkLocalAddress()){
-                System.err.println("found address6linklocal: " + linkAddress.getAddress().getHostAddress());
-                return linkAddress.getAddress();
-            }
-        }
-        /*for(LinkAddress linkAddress : manager.getLinkProperties(network).getLinkAddresses()){
-            if(linkAddress.getAddress().getClass() == Inet6Address.class){
-                System.err.println("found address6: " + linkAddress.getAddress().getHostAddress());
-                return linkAddress.getAddress();
-            }
-        }*/
-        System.err.println("address not found\n" + network.toString());
         return null;
     }
 
+    private interface PrimitivePredicate<T> {
+        public boolean test(T input);
+    }
+
+
+    private Map<Transport, List<InetAddress>> addresses = new TreeMap<Transport, List<InetAddress>>();
+    {
+        for(Transport t : Transport.values()){
+            addresses.put(t, new ArrayList<InetAddress>());
+        }
+    }
+
+
     /**
-     *  Functions as a callback when an address is found, passed to the NetworkInterfaceMaster
+     *  Functions as a callback when the address "book"(map) is updated,
+     *  passed to the NetworkInterfaceMaster
      */
-    public interface InetAddressConsumer {
-        public void consumeAddress(InetAddress inetAddress);
+    public interface TransportMapInetAddressConsumer {
+        public void consumeAddresses(Map<Transport, List<InetAddress>> addresses);
     }
 
     //to extend from, once there is a need for different onAvailable()s
     private class BaseCallback extends ConnectivityManager.NetworkCallback {
-        private Network currentBestNetwork;
-        private InetAddressConsumer addressConsumer;
+        private TransportMapInetAddressConsumer addressConsumer;
+        private ConnectivityManager manager;
+        private Transport transport;
 
-        public BaseCallback(InetAddressConsumer addressConsumer){
-
+        public BaseCallback(TransportMapInetAddressConsumer addressConsumer,
+                            ConnectivityManager manager,
+                            Transport transport){
+            this.manager = manager;
+            this.addressConsumer = addressConsumer;
+            this.transport = transport;
         }
 
         @Override
         public void onAvailable(Network network){
             super.onAvailable(network);
-            InetAddress ia;
-            if ((ia = findSuitableAddress(network)) != null){
-                addressConsumer.consumeAddress(ia);
+            InetAddress ia = findIPv4Address(manager, network);
+            if (ia != null){
+                addresses.get(transport).add(ia);
             }
+            ia = findLinkLocalIPv6Address(manager, network);
+            if (ia != null){
+                addresses.get(transport).add(ia);
+            }
+            addressConsumer.consumeAddresses(addresses);
         }
 
         @Override
         public void onCapabilitiesChanged(Network network, NetworkCapabilities networkCapabilities){
             super.onCapabilitiesChanged(network, networkCapabilities);
+            //onLost(network);
+            //onAvailable(network);
         }
 
         @Override
         public void onLinkPropertiesChanged(Network network, LinkProperties linkProperties){
             super.onLinkPropertiesChanged(network, linkProperties);
+            //onLost(network);
+            //onAvailable(network);
         }
 
         @Override
@@ -106,25 +128,33 @@ public class NetworkInterfaceMaster {
         @Override
         public void onLost(Network network){
             super.onLost(network);
-            System.err.println("LOSING NETWORK" + network.toString());
+            LinkProperties linkProperties = manager.getLinkProperties(network);
+            if(linkProperties == null){
+                addresses.get(transport).clear();
+                return;
+            }
+            for(LinkAddress la : linkProperties.getLinkAddresses()){
+                addresses.get(transport).remove(la.getAddress());
+            }
+            System.err.println("LOST NETWORK" + network.toString());
+            addressConsumer.consumeAddresses(addresses);
         }
     }
 
-    private InetAddress findLocalWifiAddress(InetAddressConsumer addressConsumer, Context context) {
-        manager = (ConnectivityManager) context.getSystemService(context.CONNECTIVITY_SERVICE);
-
-        //ethernet - usbc card or virtual eth over usb should have higher priority
+    private void registerTransportCallback(ConnectivityManager manager,
+                                           ConnectivityManager.NetworkCallback callback,
+                                           int transportType) {
         NetworkRequest.Builder requestBuilder = new NetworkRequest.Builder();
-        //requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_ETHERNET);
-        //requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
-        //manager.requestNetwork(requestBuilder.build(), new BaseCallback(addressConsumer));
-
-        //wifi, hostspot? dont know if new builder is needed
-        requestBuilder = new NetworkRequest.Builder();
-        requestBuilder.addTransportType(NetworkCapabilities.TRANSPORT_WIFI);
-        requestBuilder.addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_METERED);
-        manager.requestNetwork(requestBuilder.build(), new BaseCallback(addressConsumer));
-
-        return null;
+        requestBuilder.addTransportType(transportType);
+        manager.requestNetwork(requestBuilder.build(), callback);
+    }
+    private void registerCallbacksByTransportType(TransportMapInetAddressConsumer addressConsumer,
+                                                         ConnectivityManager manager) {
+        registerTransportCallback(manager,
+                new BaseCallback(addressConsumer, manager, Transport.valueOf(NetworkCapabilities.TRANSPORT_WIFI)),
+                NetworkCapabilities.TRANSPORT_WIFI);
+        registerTransportCallback(manager,
+                new BaseCallback(addressConsumer, manager, Transport.valueOf(NetworkCapabilities.TRANSPORT_ETHERNET)),
+                NetworkCapabilities.TRANSPORT_ETHERNET);
     }
 }

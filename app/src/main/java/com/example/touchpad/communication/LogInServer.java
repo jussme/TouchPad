@@ -13,6 +13,8 @@ import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.util.List;
+import java.util.Map;
 
 public class LogInServer{
   private static final int VERSION = 1;
@@ -29,8 +31,7 @@ public class LogInServer{
 
 
   public interface Facilitator {
-    public void noAvailableServerISA();
-    public void communicateServerISA(InetSocketAddress serverISA);
+    public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses);
     public void communicateClientUDP_ISA(InetSocketAddress clientUDPInetSocketAddress);
   }
 
@@ -42,9 +43,9 @@ public class LogInServer{
   public LogInServer(Context context, Facilitator facilitator) {
     this.context = context;
     this.facilitator = facilitator;
-    //this.networkInterfaceMaster = new NetworkInterfaceMaster(inetAddress -> {
-    //  restartServer(inetAddress);
-    //}, context);
+    this.networkInterfaceMaster = new NetworkInterfaceMaster(addresses -> {
+      this.facilitator.communicateServerAddresses(addresses);
+    }, context);
     startServer();
   }
 
