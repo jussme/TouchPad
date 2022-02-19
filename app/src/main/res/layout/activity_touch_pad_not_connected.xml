@@ -11,8 +11,10 @@
         android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.0">
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -25,11 +27,11 @@
                 android:layout_height="match_parent"
                 android:text="@string/serverDown"
                 android:textAlignment="center"
-                android:textSize="18sp" />
+                android:textSize="20sp" />
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="100dp"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -44,14 +46,15 @@
                     android:id="@+id/textView_wifi"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.2"
-                    android:text="TextView" />
+                    android:layout_weight="0.3"
+                    android:text="@string/noAddressesForWiFi"
+                    android:textSize="20sp" />
 
             </LinearLayout>
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="100dp"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -66,8 +69,9 @@
                     android:id="@+id/textView_ethernet"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:layout_weight="0.2"
-                    android:text="TextView" />
+                    android:layout_weight="0.3"
+                    android:text="@string/noAddressesForEthernet"
+                    android:textSize="20sp" />
 
             </LinearLayout>
 

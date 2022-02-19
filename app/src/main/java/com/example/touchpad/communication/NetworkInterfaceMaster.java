@@ -131,10 +131,10 @@ public class NetworkInterfaceMaster {
             LinkProperties linkProperties = manager.getLinkProperties(network);
             if(linkProperties == null){
                 addresses.get(transport).clear();
-                return;
-            }
-            for(LinkAddress la : linkProperties.getLinkAddresses()){
-                addresses.get(transport).remove(la.getAddress());
+            } else {
+                for(LinkAddress la : linkProperties.getLinkAddresses()){
+                    addresses.get(transport).remove(la.getAddress());
+                }
             }
             System.err.println("LOST NETWORK" + network.toString());
             addressConsumer.consumeAddresses(addresses);

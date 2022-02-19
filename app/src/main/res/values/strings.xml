@@ -7,7 +7,9 @@
     <string name="networkInterfacesInfoActivityButtonDesc">A button engaging the network interfaces
         info panel</string>
     <string name="serverDown">Server down</string>
-    <string name="serverUpPrompt">Available interfaces:%1s</string>
+    <string name="serverUpPrompt">Write one of the addresses into your browser. Choose according to the method of connection</string>
     <string name="wifiIconDesc">A wifi icon</string>
     <string name="ethernetIconDesc">An ethernet cable icon</string>
+    <string name="noAddressesForWiFi">WiFi</string>
+    <string name="noAddressesForEthernet">Ethernet</string>
 </resources>

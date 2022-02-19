@@ -1,19 +1,21 @@
 package com.example.touchpad.communication;
 
 public enum Transport {
-    BLUETOOTH(2),
-    CELLULAR(0),
-    ETHERNET(3),
-    LOWPAN(6),
-    USB(8),
-    VPN(4),
-    WIFI(1),
-    WIFIAWARE(5);
+    BLUETOOTH(2, "Bluetooth"),
+    CELLULAR(0, "Cellular"),
+    ETHERNET(3, "Ethernet"),
+    LOWPAN(6, "LoWPAN"),
+    USB(8,"USB"),
+    VPN(4, "VPN"),
+    WIFI(1, "WiFi"),
+    WIFIAWARE(5,"WiFi-aware");
 
     private int c;
+    public String name;
 
-    private Transport(int c){
+    private Transport(int c, String name){
         this.c = c;
+        this.name = name;
     }
 
     public static Transport valueOf(int c){
