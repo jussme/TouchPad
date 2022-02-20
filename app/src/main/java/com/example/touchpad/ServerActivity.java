@@ -44,7 +44,7 @@ public class ServerActivity extends AppCompatActivity implements LogInServer.Fac
   }
 
   @Override
-  public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses) {
+  public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses, int serverSocketPort) {
     this.runOnUiThread(() -> {//TODO change the prompt when again no addresses are available
       TextView textView = findViewById(R.id.notConnectedMessage);
       String message = getString(R.string.serverUpPrompt);
@@ -58,7 +58,7 @@ public class ServerActivity extends AppCompatActivity implements LogInServer.Fac
         StringBuilder stringBuilder = new StringBuilder();
         stringBuilder.append(entry.getKey().name + "\n");
         for(InetAddress inetAddress : entry.getValue()){
-          stringBuilder.append("\t" + inetAddress.getHostAddress() + "\n");
+          stringBuilder.append("\t" + inetAddress.getHostAddress() + ":" + serverSocketPort + "\n");
         }
         textView = map.get(entry.getKey());
         if(textView != null){//all interfaces will have textviews and be included, makeshift solution

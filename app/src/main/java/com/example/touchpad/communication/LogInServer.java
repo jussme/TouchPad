@@ -5,9 +5,11 @@ import android.content.res.AssetFileDescriptor;
 
 
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
 import java.io.DataInputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
@@ -25,13 +27,12 @@ public class LogInServer{
   private NetworkInterfaceMaster networkInterfaceMaster;
 
   private Thread serverThread;
-  private InetAddress serverAddress;
   private ServerSocket serverSocket;
 
 
 
   public interface Facilitator {
-    public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses);
+    public void communicateServerAddresses(Map<Transport, List<InetAddress>> addresses, int serverSocketPort);
     public void communicateClientUDP_ISA(InetSocketAddress clientUDPInetSocketAddress);
   }
 
@@ -44,16 +45,16 @@ public class LogInServer{
     this.context = context;
     this.facilitator = facilitator;
     this.networkInterfaceMaster = new NetworkInterfaceMaster(addresses -> {
-      this.facilitator.communicateServerAddresses(addresses);
+      this.facilitator.communicateServerAddresses(addresses, this.serverSocket.getLocalPort());
     }, context);
     startServer();
   }
 
   private void runServer() {
-    try {
-      serverSocket = new ServerSocket(getServerPort());
+    try (ServerSocket serverSocketAC = new ServerSocket(getPortForServer())){
+      this.serverSocket = serverSocketAC;
       while(!serverSocket.isClosed()) {
-        System.err.println("before accpet, " + serverSocket.getLocalPort());
+        System.err.println("before accept, " + serverSocket.getLocalPort());
         Socket connection = serverSocket.accept();
         serviceConnection(connection);//same thread - one user per phone; doesn't throw an exception
         //when the server is closed and the file is still being sent - unintentional but desirable?
@@ -88,12 +89,7 @@ public class LogInServer{
     connection.shutdownOutput();
     connection.close();
 
-    //to RST connections with pesky browsers sending keep-alive PDUs to the serverSocket(?).
-    //A four-way FIN handshake with Chrome prevents keep-alives but that requires
-    //a sleep between shutdownOutput() and close() it seems; otherwise there's no time to
-    //handshake before close()'s RST is sent.
-    serverSocket.close();
-    serverSocket = new ServerSocket(getServerPort());
+
 
     //client jar connection TODO, currently an assumption that the next client will be a pc one
     connection = serverSocket.accept();
@@ -112,7 +108,6 @@ public class LogInServer{
     outputStream.write(httpHeader.getBytes(charsetName));
 
     FileInputStream jarFileStream = jarFileDescriptor.createInputStream();
-    socket.setSoLinger(true, 15);
     int readBuff;
     while ((readBuff = jarFileStream.read()) != -1) {//TODO buffer
       outputStream.write(readBuff);
@@ -121,10 +116,23 @@ public class LogInServer{
   }
 
   private boolean isClientConnection(Socket connection) throws IOException{
+    /*
     DataInputStream clientDataInputStream = new DataInputStream(connection.getInputStream());
     short checkValue = clientDataInputStream.readShort();
     return checkValue == Short.MAX_VALUE;
+    */
+    BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+    try{
+      for(int it =0; it < 40; ++it){
+        System.err.println(it + ". " + bufferedReader.readLine());
+      }
+    } catch(Exception e){
+      e.printStackTrace();
+      System.err.println("exc");
+    }
+    return false;
   }
+
 
   private int readClientsVersion(Socket clientConnection) throws IOException{
     DataInputStream clientDataInputStream = new DataInputStream(clientConnection.getInputStream());
@@ -140,10 +148,10 @@ public class LogInServer{
     return new InetSocketAddress(socket.getInetAddress(), clientUDPRemotePort);
   }
 
-  private int getServerPort(){
+  private int getPortForServer(){
     int[] ports = {12345, 23456, 34567, 55555};
     for (int port : ports){
-      try(Socket trySocket = new Socket("localhost", port)){
+      try(ServerSocket trySocket = new ServerSocket(port)){
         return port;
       } catch (IOException ioe){
 
