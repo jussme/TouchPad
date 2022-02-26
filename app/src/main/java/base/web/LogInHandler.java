@@ -39,7 +39,7 @@ public class LogInHandler {
         throw new IllegalArgumentException();
       }
       
-      var serverAddress = new InetSocketAddress(hostname,
+      InetSocketAddress serverAddress = new InetSocketAddress(hostname,
           Integer.valueOf(serverPortString));
       
       try {

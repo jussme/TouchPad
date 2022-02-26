@@ -11,6 +11,7 @@ import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.border.Border;
 
 import base.web.LogInHandler.UserServerAddressConsumer;
 
@@ -31,7 +32,7 @@ public class LogInPanel extends JPanel{
       @Override
       public void actionPerformed(ActionEvent e) {
         try {
-          boolean validAddress = consumer.consume(hostnameTF.getText().strip(), portTF.getText().strip());
+          boolean validAddress = consumer.consume(hostnameTF.getText().trim(), portTF.getText().trim());
           
           if(validAddress) {
             touchpadWindow.returnToIdle();
@@ -49,10 +50,10 @@ public class LogInPanel extends JPanel{
   }
   
   private void prepareComponents() {
-    var inputPanel = new JPanel();
-    var buttonPanel = new JPanel();
-    var feedbackPanel = new JPanel();
-    var flowLayout = new FlowLayout(FlowLayout.CENTER,
+    JPanel inputPanel = new JPanel();
+    JPanel buttonPanel = new JPanel();
+    JPanel feedbackPanel = new JPanel();
+    FlowLayout flowLayout = new FlowLayout(FlowLayout.CENTER,
         TouchpadWindow.MARGIN,
         TouchpadWindow.MARGIN);
     
@@ -61,9 +62,9 @@ public class LogInPanel extends JPanel{
     feedbackPanel.setLayout(flowLayout);
     setLayout(new GridLayout(3,1));
     
-    var loweredborder = BorderFactory.createLoweredSoftBevelBorder();
-    var serverAddressBorder = BorderFactory.createTitledBorder(loweredborder, "Server address");
-    var serverPortBorder = BorderFactory.createTitledBorder(loweredborder, "Server port");
+    Border loweredborder = BorderFactory.createLoweredSoftBevelBorder();
+    Border serverAddressBorder = BorderFactory.createTitledBorder(loweredborder, "Server address");
+    Border serverPortBorder = BorderFactory.createTitledBorder(loweredborder, "Server port");
     
     hostnameTF = new JTextField();
       hostnameTF.setHorizontalAlignment(JTextField.CENTER);

@@ -10,11 +10,11 @@ import base.web.LogInHandler;
 
 public class Main {
   public static void main(String[] args) {
-	  var touchpadWindow = new TouchpadWindow();
+	  TouchpadWindow touchpadWindow = new TouchpadWindow();
 	  FreePortReservation reservation = null;
     try {
       reservation = FreePortReservation.reserveFreePort();
-      var logInHandler = new LogInHandler(touchpadWindow);
+      LogInHandler logInHandler = new LogInHandler(touchpadWindow);
       logInHandler.logIn(reservation.peekReservedPort());
       new InputReceiver(new DatagramSocket(reservation.redeemReservedPort()));
     } catch (IOException e1) {
